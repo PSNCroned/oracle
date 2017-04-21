@@ -232,6 +232,7 @@ function fetchUserVioHistory(userurl) {
 			success: next
 		});
 
+		// But also set the statement if box is checked
 		const statement = $(e.currentTarget).attr('data-viotext');
 		const autoVerdict = $("#_oWriteVerdictBox")[0].checked;
 		if (autoVerdict) {
