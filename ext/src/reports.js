@@ -21,13 +21,13 @@ function insertReportEnhance() {
 function insertModReportEnhance() {
 	fetchUserVioHistory($("#report_users a.user")[1].href);
 
-	// open
+    // Back to open reports link
 	if ($("a[href='/report?status=closed']").length) {
 		$("a[href='/report?status=closed']").before(
 			`<a class="smallfont pretty _oBackLink" href="/report?status=open"><i class="icon-reply red"></i> Back (Open)</a>`)
 	}
 
-	// Modtools
+    // Modtools link
 	if ($("#create_report_statement").length) {
 		const userHref = $('.report_target a').attr('href');
 		$('.report_target a').after(` <a href="/moderator${userHref}" class="_oModLink">(Mod tools)</a>`);
@@ -35,27 +35,23 @@ function insertModReportEnhance() {
 
 	const reportId = document.location.pathname.split("/")[2];
 
-	// Auto close
-	if ($("#create_report_statement").length) {
+    // NV button
+    $("#create_report_statement").append(`<a class="redbutton smallfont _oNoVio"><i class="_oracle_icon"></i> NV</a>`);
 
-	    $("#create_report_statement").append(`<a class="redbutton smallfont _oNoVio"><i class="_oracle_icon"></i> NV</a>`);
-
-	    $("#create_report_statement").after(`<div id="_oCloseReport"><input type="checkbox" id="_oCloseReportBox" checked\ />
+    // Checkbox for autoclose
+    $("#create_report_statement").after(`<div id="_oCloseReport"><input type="checkbox" id="_oCloseReportBox" checked\ />
 			<label for="_oCloseReport"><i class="_oracle_icon"></i> Close report upon submitting verdict</label></div>`);
 
-	    $("#create_user_violation").after(`<div id="_oWriteVerdict"><input type="checkbox" id="_oWriteVerdictBox" checked\ />
-			<label for="_oWriteVerdict"><i class="_oracle_icon"></i> Write verdict upon submitting violation</label></div>`);
+    // Move report to open, closed, in progress
+    $("#report_controls .vv").after(`<br />
+		<a class="redbutton smallfont _oChangeStatus" data-t="open" data-status="open"><i class="_oracle_icon"></i> Open</a>
+		<a class="redbutton smallfont _oChangeStatus" data-t="in progress" data-status="processing"><i class="_oracle_icon"></i> In progress</a>
+		<a class="redbutton smallfont _oChangeStatus" data-t="closed" data-status="closed"><i class="_oracle_icon"></i> Close</a>`);
+    $(`._oChangeStatus[data-t='${$(".report_status").text().toLowerCase()}']`).remove();
 
-		$("#report_controls .vv").after(`<br />
-			<a class="redbutton smallfont _oChangeStatus" data-t="open" data-status="open"><i class="_oracle_icon"></i> Open</a>
-			<a class="redbutton smallfont _oChangeStatus" data-t="in progress" data-status="processing"><i class="_oracle_icon"></i> In progress</a>
-			<a class="redbutton smallfont _oChangeStatus" data-t="closed" data-status="closed"><i class="_oracle_icon"></i> Close</a>`);
-
-		$(`._oChangeStatus[data-t='${$(".report_status").text().toLowerCase()}']`).remove();
-	}
-
+    // Tracking report movement
 	$("._oChangeStatus").click(e => {
-		const newStatus = $(e.currentTarget).attr('data-status')
+        const newStatus = $(e.currentTarget).attr('data-status');
 		trackAnalyticsEvent('change_status', {newStatus, reportId});
 		$.get(`https://epicmafia.com/report/${reportId}/edit/status?status=${newStatus}`, () => {
 			document.location.reload();
@@ -63,6 +59,7 @@ function insertModReportEnhance() {
 		$(e.target).addClass("disabled");
 	});
 
+    // Autoclose on statement submission
 	let actuallyLetProceed = false;
 	$("#create_report_statement").submit(e => {
 		if (actuallyLetProceed) {
@@ -79,6 +76,7 @@ function insertModReportEnhance() {
 		}
 	});
 
+    // Close report with no violation
 	$("._oNoVio").click(e => {
 		trackAnalyticsEvent('report_novio', {reportId});
 		let count = 2;
@@ -96,7 +94,7 @@ function insertModReportEnhance() {
 
 function insertReportComments() {
 	const showSel = document.location == "https://epicmafia.com/report?status=oracle_comments";
-	$(".report_status:last").after(`<a class="report_status in_menu ${showSel ? 'sel' : ''}" href="/report?status=oracle_comments" style="background-color:#cd88d3">Oracle Comments</a>`)
+    $(".report_status:last").after(`<a class="report_status in_menu ${showSel ? 'sel' : ''}" href="/report?status=oracle_comments" style="background-color:#cd88d3">Oracle Comments</a>`);
 
 	let waiting = 3;
 
@@ -160,6 +158,7 @@ function insertReportComments() {
 }
 
 function fetchUserVioHistory(userurl) {
+    // Fetch user violations
 	const user_id = userurl.split('/')[4].replace('#', '');
 	const report_id =  document.location.href.split("/")[4].replace('#', '');
 
@@ -171,7 +170,7 @@ function fetchUserVioHistory(userurl) {
 			$("#report_rt").append("<div id='violations _orcViolations'><h3>Violations</h3><p class='inform cnt' style='max-width: 40em'>No violations!</p></div>");
 		} else {
 			const vioMatch = vios.html().match(/<div class="siterule_name">[A-Za-z0-9 ]*/g);
-			
+
 			$("#report_rt").append(vios);
 			$("#violations").addClass("_orcViolations");
 			$("#violations h3").prepend("<i class='_oracle_icon'></i> ");
@@ -190,21 +189,22 @@ function fetchUserVioHistory(userurl) {
 			const instances = vioAssocArray[vio];
 			let autoText = '';
 
-			$("select[name='siterule_id']").find(`option:contains('${vio}')`)
-				.text(`${vio} [${instances}]${autoText}`);
-		}
+            $("select[name='siterule_id']").find(`option:contains('${vio}')`)
+                .text(`${vio} [${instances}]${autoText}`);
+        }
 
-		$("select[name='siterule_id']").change(e => {
+        // Monitor rule dropdown for selection
+        $("select[name='siterule_id']").change(e => {
 			const selectedVio = $(e.currentTarget).find(':selected').text().replace(/ \[[0-9]+\]/, '');
 			const punish = getPunishmentFor(selectedVio, vioAssocArray[selectedVio] || 0);
 
 			const newCountText = readableTextFor((vioAssocArray[selectedVio] || 0) + 1);
-			
+
 			$('._orcAutoVio,._orcAutoVioSubmit').remove();
 
 			if (punish === 'none') {
 			} else if (punish === 'custom') {
-				$('#create_user_violation p:last').after("<div class='_orcAutoVio inform cnt'>Applying this violation requires manual handling (e.g. lobby or site ban)</div>"); 
+                $('#create_user_violation p:last').after("<div class='_orcAutoVio inform cnt'>Applying this violation requires manual handling (e.g. lobby or site ban)</div>");
 			} else {
 				$('#create_user_violation input[type="submit"]').after(`<a class='_orcAutoVioSubmit redbutton smallfont'
 					data-action='${punish}' data-vio='${selectedVio}' data-viotext='${selectedVio} ${newCountText} - ${readablePunishmentFor(punish)}'><i class="_oracle_icon"></i> Autovio: ${punish}</a>`);
@@ -212,7 +212,7 @@ function fetchUserVioHistory(userurl) {
 		});
 	});
 
-
+    // Autovio: Applies vio, sets statement if box is not checked, closes report, performs mod actions and sets reasons
 	$('body').on('click', '._orcAutoVioSubmit', e => {
 		const punish = $(e.currentTarget).attr('data-action');
 		$(e.currentTarget).text("Processing");
@@ -234,8 +234,7 @@ function fetchUserVioHistory(userurl) {
 
 		// But also set the statement if box is checked
 		const statement = $(e.currentTarget).attr('data-viotext');
-		const autoVerdict = $("#_oWriteVerdictBox")[0].checked;
-		if (autoVerdict) {
+        if (!$("#report_statement")) {
 			$.get(`https://epicmafia.com/report/${report_id}/edit/statement?statement=${statement}`, next);
 		}
 
