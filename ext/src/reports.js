@@ -211,6 +211,10 @@ function fetchUserVioHistory(userurl) {
 		});
 	});
 
+    // Checking for an existing statement to prevent overwriting with autovio
+    if ($("#report_statement").length) {
+        var existingStatement = $("#report_statement")[0].innerHTML;
+    }
     // Autovio: Applies vio, sets statement if box is not checked, closes report, performs mod actions and sets reasons
 	$('body').on('click', '._orcAutoVioSubmit', e => {
 		const punish = $(e.currentTarget).attr('data-action');
@@ -232,10 +236,12 @@ function fetchUserVioHistory(userurl) {
 		});
 
         // But also set the statement
-		const statement = $(e.currentTarget).attr('data-viotext');
-        if (!$("#report_statement")) {
+        if (typeof existingStatement === 'undefined') {
+            const statement = $(e.currentTarget).attr('data-viotext');
 			$.get(`https://epicmafia.com/report/${report_id}/edit/statement?statement=${statement}`, next);
-		}
+        } else {
+            const statement = existingStatement;
+        }
 
 		// And also close the report
 		$.get(`https://epicmafia.com/report/${report_id}/edit/status?status=closed`, next);
@@ -255,7 +261,6 @@ function fetchUserVioHistory(userurl) {
 							break;
 						}
 					}
-
 					$.get(`https://epicmafia.com/action/${actionId}/edit_reason?reason=${statement}+(via+Oracle)`, next);
 				});
 			});
