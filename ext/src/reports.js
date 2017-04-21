@@ -158,7 +158,6 @@ function insertReportComments() {
 }
 
 function fetchUserVioHistory(userurl) {
-    // Fetch user violations
 	const user_id = userurl.split('/')[4].replace('#', '');
 	const report_id =  document.location.href.split("/")[4].replace('#', '');
 
@@ -232,7 +231,7 @@ function fetchUserVioHistory(userurl) {
 			success: next
 		});
 
-        // But also set the statement, unless it has been set manually
+        // But also set the statement
 		const statement = $(e.currentTarget).attr('data-viotext');
         if (!$("#report_statement")) {
 			$.get(`https://epicmafia.com/report/${report_id}/edit/statement?statement=${statement}`, next);
