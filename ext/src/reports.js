@@ -232,7 +232,7 @@ function fetchUserVioHistory(userurl) {
 			success: next
 		});
 
-		// But also set the statement if box is checked
+        // But also set the statement, unless it has been set manually
 		const statement = $(e.currentTarget).attr('data-viotext');
         if (!$("#report_statement")) {
 			$.get(`https://epicmafia.com/report/${report_id}/edit/statement?statement=${statement}`, next);
