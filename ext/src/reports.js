@@ -33,16 +33,18 @@ function insertModReportEnhance() {
 		$('.report_target a').after(` <a href="/moderator${userHref}" class="_oModLink">(Mod tools)</a>`);
 	}
 
-	// Initializing earlier so variable can be used in the no vio button
 	const reportId = document.location.pathname.split("/")[2];
 
 	// Auto close
 	if ($("#create_report_statement").length) {
 
-	    $("#create_report_statement").append(`<a class="redbutton smallfont _oNoVio"><i class="_oracle_icon"></i> nv</a>`);
+	    $("#create_report_statement").append(`<a class="redbutton smallfont _oNoVio"><i class="_oracle_icon"></i> NV</a>`);
 
 	    $("#create_report_statement").after(`<div id="_oCloseReport"><input type="checkbox" id="_oCloseReportBox" checked\ />
 			<label for="_oCloseReport"><i class="_oracle_icon"></i> Close report upon submitting verdict</label></div>`);
+
+	    $("#create_user_violation").after(`<div id="_oWriteVerdict"><input type="checkbox" id="_oWriteVerdictBox" checked\ />
+			<label for="_oWriteVerdict"><i class="_oracle_icon"></i> Write verdict upon submitting violation</label></div>`);
 
 		$("#report_controls .vv").after(`<br />
 			<a class="redbutton smallfont _oChangeStatus" data-t="open" data-status="open"><i class="_oracle_icon"></i> Open</a>
@@ -81,7 +83,7 @@ function insertModReportEnhance() {
 		trackAnalyticsEvent('report_novio', {reportId});
 		let count = 2;
 		$.get(`https://epicmafia.com/report/${reportId}/edit/status?status=closed`, next);
-		$.get(`https://epicmafia.com/report/${reportId}/edit/statement?statement=no+violation`, next);
+		$.get(`https://epicmafia.com/report/${reportId}/edit/statement?statement=No+violation`, next);
 
 		function next() {
 			count--;
@@ -230,9 +232,11 @@ function fetchUserVioHistory(userurl) {
 			success: next
 		});
 
-		// But also set the statement
 		const statement = $(e.currentTarget).attr('data-viotext');
-		$.get(`https://epicmafia.com/report/${report_id}/edit/statement?statement=${statement}`, next);
+		const autoVerdict = $("#_oWriteVerdictBox")[0].checked;
+		if (autoVerdict) {
+			$.get(`https://epicmafia.com/report/${report_id}/edit/statement?statement=${statement}`, next);
+		}
 
 		// And also close the report
 		$.get(`https://epicmafia.com/report/${report_id}/edit/status?status=closed`, next);
